@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>タブーワード 説明ゲーム</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 min-h-screen p-4">
+<div class="max-w-2xl mx-auto">
+  <h1 class="text-3xl font-bold text-white text-center mb-2">タブーワード 説明ゲーム</h1>
+  <p class="text-gray-400 text-center mb-4 text-sm">禁止語を使わずにお題を説明しよう！</p>
+
+  <!-- Setup Screen -->
+  <div id="setup-screen" class="bg-gray-800 rounded-2xl p-6">
+    <h2 class="text-xl font-bold text-white mb-4">チーム設定</h2>
+    <div class="grid grid-cols-2 gap-4 mb-6">
+      <div>
+        <label class="text-gray-300 text-sm block mb-1">チームA名</label>
+        <input id="team-a-name" type="text" value="チームA" class="w-full bg-gray-700 text-white px-3 py-2 rounded-lg border border-gray-600 focus:outline-none focus:border-blue-500">
+      </div>
+      <div>
+        <label class="text-gray-300 text-sm block mb-1">チームB名</label>
+        <input id="team-b-name" type="text" value="チームB" class="w-full bg-gray-700 text-white px-3 py-2 rounded-lg border border-gray-600 focus:outline-none focus:border-blue-500">
+      </div>
+    </div>
+    <h2 class="text-xl font-bold text-white mb-3">カテゴリ選択</h2>
+    <div id="category-select" class="grid grid-cols-3 gap-2 mb-6">
+    </div>
+    <h2 class="text-xl font-bold text-white mb-3">問題数/ラウンド</h2>
+    <div class="flex gap-3 mb-6">
+      <button class="round-count-btn bg-blue-600 text-white px-4 py-2 rounded-lg" data-count="5" aria-label="5問選択">5問</button>
+      <button class="round-count-btn bg-gray-600 text-white px-4 py-2 rounded-lg" data-count="10" aria-label="10問選択">10問</button>
+      <button class="round-count-btn bg-gray-600 text-white px-4 py-2 rounded-lg" data-count="15" aria-label="15問選択">15問</button>
+    </div>
+    <button id="start-btn" class="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-xl text-lg font-bold" aria-label="ゲームスタート">ゲームスタート！</button>
+  </div>
+
+  <!-- Game Screen -->
+  <div id="game-screen" class="hidden">
+    <div class="flex justify-between items-center mb-4">
+      <div id="team-indicator" class="text-white font-bold text-xl"></div>
+      <div class="flex gap-4">
+        <span class="text-gray-300">問題: <span id="q-progress" class="text-white font-bold"></span></span>
+        <span class="text-gray-300">スコア A:<span id="score-a" class="text-yellow-400 font-bold">0</span> B:<span id="score-b" class="text-yellow-400 font-bold">0</span></span>
+      </div>
+    </div>
+
+    <!-- Timer -->
+    <div class="bg-gray-800 rounded-2xl p-4 mb-4 flex items-center justify-between">
+      <div id="timer-bar-wrap" class="flex-1 bg-gray-700 rounded-full h-4 mr-4">
+        <div id="timer-bar" class="h-4 rounded-full bg-green-500 transition-all" style="width:100%"></div>
+      </div>
+      <div id="timer-display" class="text-3xl font-bold text-white w-12 text-center">30</div>
+    </div>
+
+    <!-- Card -->
+    <div class="bg-gray-800 rounded-2xl p-6 mb-4">
+      <div class="text-center mb-4">
+        <span class="text-xs text-gray-400 uppercase tracking-widest" id="card-category"></span>
+        <div class="text-4xl font-bold text-white mt-1" id="card-topic"></div>
+      </div>
+      <div class="border-t border-gray-600 pt-4">
+        <p class="text-sm text-red-400 font-semibold mb-2">禁止ワード:</p>
+        <div id="taboo-words" class="flex flex-wrap gap-2"></div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-2 gap-3">
+      <button id="correct-btn" class="bg-green-600 hover:bg-green-700 text-white py-4 rounded-xl text-xl font-bold" aria-label="正解">✓ 正解</button>
+      <button id="skip-btn" class="bg-yellow-600 hover:bg-yellow-700 text-white py-4 rounded-xl text-xl font-bold" aria-label="スキップ">→ スキップ</button>
+    </div>
+  </div>
+
+  <!-- Round End Screen -->
+  <div id="round-end-screen" class="hidden bg-gray-800 rounded-2xl p-6 text-center">
+    <h2 class="text-2xl font-bold text-white mb-2" id="round-end-title"></h2>
+    <div class="text-6xl font-bold text-yellow-400 mb-2" id="round-end-score"></div>
+    <p class="text-gray-300 mb-6" id="round-end-msg"></p>
+    <button id="next-team-btn" class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-xl text-lg font-bold" aria-label="次のチームへ"></button>
+  </div>
+
+  <!-- Final Screen -->
+  <div id="final-screen" class="hidden bg-gray-800 rounded-2xl p-8 text-center">
+    <h2 class="text-3xl font-bold text-white mb-4">ゲーム終了！</h2>
+    <div id="final-scores" class="mb-6"></div>
+    <div id="winner-display" class="text-2xl font-bold text-yellow-400 mb-6"></div>
+    <button id="restart-final-btn" class="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-xl text-lg font-bold" aria-label="もう一度">もう一度プレイ</button>
+  </div>
+</div>
+
+<script>
+const TABOO_DATA = {
+  食べ物: [
+    {topic:'すし',taboo:['魚','米','酢','海鮮','日本']},
+    {topic:'ラーメン',taboo:['麺','スープ','中華','豚骨','醤油']},
+    {topic:'カレー',taboo:['スパイス','インド','辛い','ルー','ご飯']},
+    {topic:'チョコレート',taboo:['甘い','カカオ','バレンタイン','溶ける','菓子']},
+    {topic:'リンゴ',taboo:['赤','果物','甘い','木','秋']},
+    {topic:'天ぷら',taboo:['揚げる','衣','油','エビ','和食']},
+    {topic:'ケーキ',taboo:['甘い','誕生日','クリーム','スポンジ','お菓子']},
+    {topic:'バナナ',taboo:['黄色','果物','サル','南国','甘い']},
+    {topic:'味噌汁',taboo:['味噌','豆腐','和食','朝食','汁']},
+    {topic:'ピザ',taboo:['チーズ','イタリア','生地','丸い','トマト']},
+    {topic:'おにぎり',taboo:['米','海苔','三角','具','コンビニ']},
+    {topic:'アイスクリーム',taboo:['冷たい','甘い','溶ける','夏','コーン']},
+    {topic:'唐揚げ',taboo:['鶏','揚げる','からっと','日本','弁当']},
+    {topic:'スイカ',taboo:['赤','夏','種','縞模様','果物']},
+    {topic:'コーヒー',taboo:['豆','苦い','カフェ','ホット','ブラック']},
+    {topic:'パスタ',taboo:['麺','イタリア','ソース','小麦','茹でる']},
+    {topic:'豆腐',taboo:['大豆','白','柔らかい','冷奴','味噌']},
+    {topic:'イチゴ',taboo:['赤','甘い','春','果物','ケーキ']},
+    {topic:'ポテトチップス',taboo:['じゃがいも','薄い','塩','袋','スナック']},
+    {topic:'たこ焼き',taboo:['タコ','丸い','大阪','ソース','粉']},
+  ],
+  スポーツ: [
+    {topic:'サッカー',taboo:['ボール','ゴール','キック','11人','芝']},
+    {topic:'野球',taboo:['バット','ホームラン','ピッチャー','グローブ','スタジアム']},
+    {topic:'バスケットボール',taboo:['シュート','コート','ゴール','ドリブル','5人']},
+    {topic:'テニス',taboo:['ラケット','コート','ネット','球','プロ']},
+    {topic:'水泳',taboo:['プール','泳ぐ','クロール','水','ゴーグル']},
+    {topic:'柔道',taboo:['投げる','道着','畳','日本','一本']},
+    {topic:'ゴルフ',taboo:['クラブ','ボール','コース','ホール','グリーン']},
+    {topic:'バレーボール',taboo:['ネット','スパイク','サーブ','6人','コート']},
+    {topic:'卓球',taboo:['ラケット','台','ピンポン','球','ネット']},
+    {topic:'マラソン',taboo:['走る','42km','ゴール','レース','タイム']},
+    {topic:'スキー',taboo:['雪','山','板','スロープ','冬']},
+    {topic:'ボクシング',taboo:['パンチ','リング','グローブ','ファイト','KO']},
+    {topic:'体操',taboo:['鉄棒','演技','点数','床','オリンピック']},
+    {topic:'陸上競技',taboo:['走る','トラック','跳ぶ','タイム','オリンピック']},
+    {topic:'バドミントン',taboo:['シャトル','ラケット','コート','ネット','打つ']},
+    {topic:'相撲',taboo:['土俵','力士','横綱','投げる','太る']},
+    {topic:'フィギュアスケート',taboo:['氷','回転','演技','スケート','ジャンプ']},
+    {topic:'ラグビー',taboo:['楕円','タックル','スクラム','15人','トライ']},
+    {topic:'ウエイトリフティング',taboo:['重い','バーベル','持ち上げる','筋肉','競技']},
+    {topic:'フェンシング',taboo:['剣','突く','マスク','細い','西洋']},
+  ],
+  動物: [
+    {topic:'ライオン',taboo:['たてがみ','百獣の王','アフリカ','ネコ科','吠える']},
+    {topic:'ペンギン',taboo:['南極','黒白','泳ぐ','鳥','フリッパー']},
+    {topic:'キリン',taboo:['首が長い','アフリカ','斑点','高い','草食']},
+    {topic:'クジラ',taboo:['海','大きい','哺乳類','潮吹き','歌う']},
+    {topic:'コアラ',taboo:['ユーカリ','オーストラリア','木','抱きつく','有袋類']},
+    {topic:'タコ',taboo:['足8本','海','墨','吸盤','柔らかい']},
+    {topic:'カメレオン',taboo:['色変わる','舌','爬虫類','カメ','ゆっくり']},
+    {topic:'フラミンゴ',taboo:['ピンク','片足','鳥','アフリカ','細い']},
+    {topic:'カンガルー',taboo:['袋','オーストラリア','跳ぶ','コアラ','有袋類']},
+    {topic:'シマウマ',taboo:['縞模様','アフリカ','ウマ','白黒','草食']},
+    {topic:'カバ',taboo:['大きい','水','アフリカ','口','草食']},
+    {topic:'チーター',taboo:['速い','斑点','アフリカ','ネコ科','走る']},
+    {topic:'ゾウ',taboo:['鼻','大きい','アフリカ','象牙','耳']},
+    {topic:'サメ',taboo:['歯','海','危険','泳ぐ','フィン']},
+    {topic:'コウモリ',taboo:['夜','飛ぶ','洞窟','超音波','黒']},
+    {topic:'パンダ',taboo:['白黒','中国','笹','大きい','かわいい']},
+    {topic:'イルカ',taboo:['海','賢い','ジャンプ','哺乳類','水族館']},
+    {topic:'ホタル',taboo:['光る','夏','虫','川','幼虫']},
+    {topic:'タランチュラ',taboo:['大きい','クモ','毒','毛','南米']},
+    {topic:'カッコウ',taboo:['鳴く','托卵','鳥','時計','春']},
+  ],
+  職業: [
+    {topic:'医者',taboo:['病院','治す','患者','注射','薬']},
+    {topic:'消防士',taboo:['火','消す','救助','ホース','赤']},
+    {topic:'パイロット',taboo:['飛行機','操縦','空','制服','コックピット']},
+    {topic:'料理人',taboo:['料理','食べ物','包丁','レストラン','調理']},
+    {topic:'警察官',taboo:['犯人','逮捕','制服','パトカー','法律']},
+    {topic:'先生',taboo:['学校','教える','生徒','授業','黒板']},
+    {topic:'弁護士',taboo:['法律','裁判','証拠','依頼人','弁護']},
+    {topic:'建築家',taboo:['建物','設計','図面','建築','構造']},
+    {topic:'プログラマー',taboo:['コード','パソコン','ソフト','プログラム','IT']},
+    {topic:'美容師',taboo:['髪','切る','サロン','ハサミ','スタイル']},
+    {topic:'宇宙飛行士',taboo:['宇宙','ロケット','宇宙服','無重力','NASA']},
+    {topic:'農家',taboo:['農業','野菜','畑','土','収穫']},
+    {topic:'漁師',taboo:['魚','海','網','釣る','船']},
+    {topic:'カメラマン',taboo:['写真','カメラ','撮る','シャッター','映像']},
+    {topic:'歌手',taboo:['歌う','声','ステージ','マイク','音楽']},
+    {topic:'スポーツ選手',taboo:['試合','競技','練習','勝つ','体']},
+    {topic:'会計士',taboo:['お金','数字','税金','帳簿','計算']},
+    {topic:'デザイナー',taboo:['デザイン','色','形','絵','アート']},
+    {topic:'外交官',taboo:['外国','交渉','大使館','条約','政治']},
+    {topic:'保育士',taboo:['子供','幼稚園','保育','遊ぶ','世話']},
+  ],
+  乗り物: [
+    {topic:'新幹線',taboo:['速い','電車','日本','レール','駅']},
+    {topic:'ヘリコプター',taboo:['ローター','空','飛ぶ','回転','垂直']},
+    {topic:'潜水艦',taboo:['海中','深い','魚雷','潜る','軍']},
+    {topic:'熱気球',taboo:['空','浮く','火','バスケット','風']},
+    {topic:'リムジン',taboo:['長い','高級','パーティー','運転手','黒']},
+    {topic:'カヌー',taboo:['川','パドル','水','漕ぐ','小さい']},
+    {topic:'フォークリフト',taboo:['荷物','倉庫','叉状','持ち上げる','工場']},
+    {topic:'ホバークラフト',taboo:['空気','浮く','水面','プロペラ','陸']},
+    {topic:'ケーブルカー',taboo:['山','ワイヤー','傾斜','観光','索道']},
+    {topic:'コンコルド',taboo:['超音速','廃止','飛行機','速い','大西洋']},
+    {topic:'ロープウェイ',taboo:['山','ゴンドラ','ワイヤー','空中','観光']},
+    {topic:'モノレール',taboo:['1本','レール','都市','電車','空中']},
+    {topic:'フェリー',taboo:['船','海','車','乗客','島']},
+    {topic:'チャリオット',taboo:['馬','古代','戦争','車輪','ローマ']},
+    {topic:'ドローン',taboo:['無人','空','カメラ','プロペラ','遠隔']},
+    {topic:'スペースシャトル',taboo:['宇宙','ロケット','NASA','翼','往復']},
+    {topic:'砕氷船',taboo:['氷','北極','船','割る','強い']},
+    {topic:'消防車',taboo:['火','ホース','赤','サイレン','はしご']},
+    {topic:'トロッコ',taboo:['レール','炭鉱','小さい','線路','手動']},
+    {topic:'ジェットスキー',taboo:['水上','速い','波','跨る','エンジン']},
+  ]
+};
+
+const CATEGORIES = Object.keys(TABOO_DATA);
+let selectedCategories = [...CATEGORIES];
+let roundCount = 5;
+let teamNames = ['チームA', 'チームB'];
+let scores = [0, 0];
+let currentTeam = 0;
+let currentRound = 0;
+let totalRounds = 2;
+let roundScore = 0;
+let roundSkips = 0;
+let questions = [];
+let qIndex = 0;
+let timerInterval = null;
+let timeLeft = 30;
+
+function escapeHtml(str) {
+  const d = document.createElement('div');
+  d.appendChild(document.createTextNode(str));
+  return d.innerHTML;
+}
+
+// Setup: category buttons
+const catDiv = document.getElementById('category-select');
+CATEGORIES.forEach(cat => {
+  const btn = document.createElement('button');
+  btn.className = 'bg-blue-600 text-white px-3 py-2 rounded-lg text-sm font-semibold cat-btn';
+  btn.setAttribute('aria-label', `${cat}を選択/解除`);
+  btn.setAttribute('data-cat', cat);
+  btn.textContent = cat;
+  btn.addEventListener('click', () => {
+    if (selectedCategories.includes(cat)) {
+      if (selectedCategories.length === 1) return;
+      selectedCategories = selectedCategories.filter(c => c !== cat);
+      btn.className = 'bg-gray-600 text-white px-3 py-2 rounded-lg text-sm font-semibold cat-btn';
+    } else {
+      selectedCategories.push(cat);
+      btn.className = 'bg-blue-600 text-white px-3 py-2 rounded-lg text-sm font-semibold cat-btn';
+    }
+  });
+  catDiv.appendChild(btn);
+});
+
+document.querySelectorAll('.round-count-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    roundCount = parseInt(btn.dataset.count);
+    document.querySelectorAll('.round-count-btn').forEach(b => b.className = 'round-count-btn bg-gray-600 text-white px-4 py-2 rounded-lg');
+    btn.className = 'round-count-btn bg-blue-600 text-white px-4 py-2 rounded-lg';
+  });
+});
+
+document.getElementById('start-btn').addEventListener('click', () => {
+  teamNames[0] = document.getElementById('team-a-name').value || 'チームA';
+  teamNames[1] = document.getElementById('team-b-name').value || 'チームB';
+  scores = [0, 0];
+  currentTeam = 0;
+  currentRound = 0;
+  document.getElementById('setup-screen').classList.add('hidden');
+  startTeamTurn();
+});
+
+function buildQuestions() {
+  const pool = [];
+  selectedCategories.forEach(cat => {
+    TABOO_DATA[cat].forEach(q => pool.push({...q, category: cat}));
+  });
+  return shuffle(pool).slice(0, roundCount);
+}
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function startTeamTurn() {
+  questions = buildQuestions();
+  qIndex = 0; roundScore = 0; roundSkips = 0;
+  document.getElementById('game-screen').classList.remove('hidden');
+  document.getElementById('round-end-screen').classList.add('hidden');
+  document.getElementById('final-screen').classList.add('hidden');
+  document.getElementById('score-a').textContent = scores[0];
+  document.getElementById('score-b').textContent = scores[1];
+  document.getElementById('team-indicator').textContent = `${teamNames[currentTeam]} のターン`;
+  renderCard();
+}
+
+function renderCard() {
+  if (qIndex >= questions.length) { endRound(); return; }
+  const q = questions[qIndex];
+  document.getElementById('q-progress').textContent = `${qIndex+1}/${questions.length}`;
+  document.getElementById('card-category').textContent = q.category;
+  document.getElementById('card-topic').textContent = q.topic;
+  const tw = document.getElementById('taboo-words');
+  tw.innerHTML = '';
+  q.taboo.forEach(w => {
+    const span = document.createElement('span');
+    span.className = 'bg-red-900 text-red-200 px-3 py-1 rounded-full text-sm font-semibold';
+    span.textContent = w;
+    tw.appendChild(span);
+  });
+  startTimer();
+}
+
+function startTimer() {
+  clearInterval(timerInterval);
+  timeLeft = 30;
+  updateTimerUI();
+  timerInterval = setInterval(() => {
+    timeLeft--;
+    updateTimerUI();
+    if (timeLeft <= 0) {
+      clearInterval(timerInterval);
+      qIndex++;
+      renderCard();
+    }
+  }, 1000);
+}
+
+function updateTimerUI() {
+  document.getElementById('timer-display').textContent = timeLeft;
+  const pct = (timeLeft / 30) * 100;
+  const bar = document.getElementById('timer-bar');
+  bar.style.width = pct + '%';
+  bar.className = 'h-4 rounded-full transition-all ' + (timeLeft > 15 ? 'bg-green-500' : timeLeft > 8 ? 'bg-yellow-500' : 'bg-red-500');
+}
+
+document.getElementById('correct-btn').addEventListener('click', () => {
+  clearInterval(timerInterval);
+  roundScore++;
+  scores[currentTeam]++;
+  document.getElementById('score-a').textContent = scores[0];
+  document.getElementById('score-b').textContent = scores[1];
+  qIndex++;
+  renderCard();
+});
+
+document.getElementById('skip-btn').addEventListener('click', () => {
+  clearInterval(timerInterval);
+  roundSkips++;
+  qIndex++;
+  renderCard();
+});
+
+function endRound() {
+  clearInterval(timerInterval);
+  document.getElementById('game-screen').classList.add('hidden');
+  document.getElementById('round-end-screen').classList.remove('hidden');
+  document.getElementById('round-end-title').textContent = `${teamNames[currentTeam]} の結果`;
+  document.getElementById('round-end-score').textContent = `${roundScore} 正解`;
+  document.getElementById('round-end-msg').textContent = `スキップ: ${roundSkips}問 | 通算 A:${scores[0]} B:${scores[1]}`;
+
+  if (currentTeam === 0) {
+    const btn = document.getElementById('next-team-btn');
+    btn.textContent = `${teamNames[1]} のターンへ`;
+    btn.onclick = () => { currentTeam = 1; startTeamTurn(); };
+  } else {
+    const btn = document.getElementById('next-team-btn');
+    btn.textContent = '最終結果を見る';
+    btn.onclick = showFinal;
+  }
+}
+
+function showFinal() {
+  document.getElementById('round-end-screen').classList.add('hidden');
+  document.getElementById('final-screen').classList.remove('hidden');
+  const fs = document.getElementById('final-scores');
+  fs.innerHTML = `<div class="flex justify-center gap-12 mb-4">
+    <div><div class="text-gray-400 text-sm">${escapeHtml(teamNames[0])}</div><div class="text-5xl font-bold text-blue-400">${scores[0]}</div></div>
+    <div class="text-4xl font-bold text-gray-500 flex items-center">:</div>
+    <div><div class="text-gray-400 text-sm">${escapeHtml(teamNames[1])}</div><div class="text-5xl font-bold text-red-400">${scores[1]}</div></div>
+  </div>`;
+  let winner = '';
+  if (scores[0] > scores[1]) winner = `🏆 ${escapeHtml(teamNames[0])} の勝利！`;
+  else if (scores[1] > scores[0]) winner = `🏆 ${escapeHtml(teamNames[1])} の勝利！`;
+  else winner = '引き分け！';
+  document.getElementById('winner-display').innerHTML = winner;
+}
+
+document.getElementById('restart-final-btn').addEventListener('click', () => {
+  scores = [0,0]; currentTeam = 0;
+  document.getElementById('final-screen').classList.add('hidden');
+  document.getElementById('setup-screen').classList.remove('hidden');
+  document.getElementById('team-a-name').value = teamNames[0];
+  document.getElementById('team-b-name').value = teamNames[1];
+});
+</script>
+</body>
+</html>
